@@ -146,7 +146,7 @@ static uint32 status_reg = 0;
 #define POLL_TX_TO_RESP_RX_DLY_UUS 150
 /* This is the delay from Frame RX timestamp to TX reply timestamp used for calculating/setting the DW1000's delayed TX function. This includes the
  * frame length of approximately 2.66 ms with above configuration. */
-#define RESP_RX_TO_FINAL_TX_DLY_UUS 2800 //2700 will fail
+#define RESP_RX_TO_FINAL_TX_DLY_UUS 2800*100 //2700 will fail
 /* Receive response timeout. See NOTE 5 below. */
 #define RESP_RX_TIMEOUT_UUS 2700
 
@@ -208,8 +208,8 @@ int Anthordistance_count[ANCHOR_MAX_NUM];
 #endif
 /* Private macro ----------*/
 
-//#define SIMPLE_TX
-#define SIMPLE_RX
+#define SIMPLE_TX
+//#define SIMPLE_RX
 #define UART_TX
 #define UART_RX
 
@@ -241,6 +241,7 @@ void Simple_Tx(void)
 		static uint64 rx_time_old;
 		static uint64 rx_time_diff;
 		static uint64 tx_time_diff;
+		static uint32 final_tx_time;
 		OLED_ShowString(0,0,(u8*)"SIMPLE_TX");
 		OLED_ShowString(0,4,&tx_msg[2]);
 		TXPOWER = dwt_read32bitoffsetreg(0x1E,0x00);
@@ -261,19 +262,19 @@ void Simple_Tx(void)
 			}
 				tx_time_old = poll_tx_ts;
 				poll_tx_ts = get_tx_timestamp_u64();
-				if(poll_tx_ts < tx_time_old) 
-				{
-					tx_time_diff = poll_tx_ts - tx_time_old + 0x10000000000;
-				}
-				else
-				{
-					tx_time_diff = poll_tx_ts - tx_time_old;
-				}
-			  final_msg_set_ts(&tx_final_msg[FINAL_MSG_POLL_TX_TS_IDX], tx_time_diff);
+				final_tx_time = dwt_readsystimestamphi32() +0x100000;//8ms
+				/* Compute final message transmission time. See NOTE 9 below. */
+				//final_tx_time = (poll_tx_ts >> 8) + 0x100000;
+				dwt_setdelayedtrxtime(final_tx_time);
+				/* Final TX timestamp is the transmission time we programmed plus the TX antenna delay. */
+				final_tx_ts = (((uint64)(final_tx_time & 0xFFFFFFFE)) << 8) + TX_ANT_DLY;
+
+			  final_msg_set_ts(&tx_final_msg[FINAL_MSG_FINAL_TX_TS_IDX], final_tx_ts);
 				dwt_writetxdata(sizeof(tx_final_msg), tx_final_msg, 0);
         dwt_writetxfctrl(sizeof(tx_final_msg), 0);						  
         /* Start transmission. */
-        dwt_starttx(DWT_START_TX_IMMEDIATE);
+				dwt_starttx(DWT_START_TX_DELAYED);
+        //dwt_starttx(DWT_START_TX_IMMEDIATE);
         /* Poll DW1000 until TX frame sent event set. See NOTE 4 below.
          * STATUS register is 5 bytes long but, as the event we are looking at is in the first byte of the register, we can use this simplest API
          * function to access it.*/
@@ -283,10 +284,12 @@ void Simple_Tx(void)
         /* Clear TX frame sent event. */
         dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_TXFRS);
 
-				sprintf(dist_str, "%lld", tx_time_diff); 
-				printf(dist_str);
+//				sprintf(dist_str, "%lld", tx_time_diff); 
+//				printf(dist_str);
 
-				deca_sleep(100);
+				deca_sleep(42);
+				//deca_sleep(492);
+				//deca_sleep(992);
 		}
 #else	
 	  while(1)
@@ -361,8 +364,8 @@ void Simple_Rx(void)
 			  static uint64 rx_time;
 				static uint64 tx_time_old;
 			  static uint64 rx_time_old;
-				static uint64 rx_time_diff;
-				static uint64 tx_time_diff;
+				static uint32 rx_time_diff;
+				static uint32 tx_time_diff;
 				char dist_str[16] = {0};
 				char displayi = 1;
         /* Activate reception immediately. See NOTE 2 below. */
@@ -386,27 +389,13 @@ void Simple_Rx(void)
 								tx_time_old = tx_time;
 								rx_time = get_rx_timestamp_u64();
 								//tx_time = get_tx_timestamp_u64();
-							  final_msg_get_ts(&rx_buffer[FINAL_MSG_POLL_TX_TS_IDX], &tx_time);
-								if(rx_time < rx_time_old) 
-								{
-									rx_time_diff = rx_time - rx_time_old + 0x10000000000;
-								}
-								else
-								{
-									rx_time_diff = rx_time - rx_time_old;
-								}
-//								if(tx_time < tx_time_old) 
-//								{
-//									tx_time_diff = tx_time - tx_time_old + 0x1000000000;
-//								}
-//								else
-//								{
-//									tx_time_diff = tx_time - tx_time_old;
-//								}
+							  //final_msg_get_ts(&rx_buffer[FINAL_MSG_POLL_TX_TS_IDX], &tx_time);
+								final_msg_get_ts(&rx_buffer[FINAL_MSG_FINAL_TX_TS_IDX], &tx_time);
+								rx_time_diff = rx_time - rx_time_old;
 								tx_time_diff = tx_time - tx_time_old;
 #ifdef UART_RX
 								//sprintf(dist_str, "%llu,%llu,%lld,%lld", rx_time, tx_time, rx_time_diff, tx_time_diff); 
-								sprintf(dist_str, "%lld,%lld", rx_time_diff, tx_time_diff); 
+								sprintf(dist_str, "%d\t%d\n", tx_time_diff,rx_time_diff); 
 								//printf(rx_buffer);
 								printf(dist_str);
 								OLED_ShowString(0,2,(u8*)displayi);

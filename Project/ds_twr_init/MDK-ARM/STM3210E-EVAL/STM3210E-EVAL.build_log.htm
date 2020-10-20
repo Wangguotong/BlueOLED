@@ -21,40 +21,40 @@ Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.1.0
 Dialog DLL:      TCM.DLL V1.35.1.0
  
 <h2>Project:</h2>
-D:\桌面\UWBZhaoyu\UWB定位\上位机软件以及源码\BlueOLED\BPHero_UWB_Location_SourceCode_V1.1_16MHz_V1.3\Project\ds_twr_init\MDK-ARM\Project.uvprojx
+D:\桌面\论文\Github\BlueOLED\Project\ds_twr_init\MDK-ARM\Project.uvprojx
 Project File Date:  10/08/2020
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'D:\SoftWare\Keil5\ARM\ARMCC\Bin'
 Build target 'ds_twr_init'
 compiling main.c...
-..\main.c(357): warning:  #177-D: variable "RxC"  was declared but never referenced
-  				static int RxC,RxN,RxNOSAT;
-..\main.c(357): warning:  #177-D: variable "RxN"  was declared but never referenced
-  				static int RxC,RxN,RxNOSAT;
-..\main.c(357): warning:  #177-D: variable "RxNOSAT"  was declared but never referenced
-  				static int RxC,RxN,RxNOSAT;
-..\main.c(358): warning:  #177-D: variable "isDisplay"  was declared but never referenced
-  				static u8 isDisplay = 0;
-..\main.c(359): warning:  #177-D: variable "RSSI"  was declared but never referenced
-  			  static double RSSI;
-..\main.c(474): warning:  #177-D: variable "buff"  was declared but never referenced
+..\main.c(240): warning:  #550-D: variable "tx_time_old"  was set but never used
+  		static uint64 tx_time_old;
+..\main.c(241): warning:  #177-D: variable "rx_time_old"  was declared but never referenced
+  		static uint64 rx_time_old;
+..\main.c(242): warning:  #177-D: variable "rx_time_diff"  was declared but never referenced
+  		static uint64 rx_time_diff;
+..\main.c(243): warning:  #177-D: variable "tx_time_diff"  was declared but never referenced
+  		static uint64 tx_time_diff;
+..\main.c(463): warning:  #177-D: variable "buff"  was declared but never referenced
       uint8 buff[5];
-..\main.c(476): warning:  #550-D: variable "cnt"  was set but never used
+..\main.c(465): warning:  #550-D: variable "cnt"  was set but never used
       int cnt ;
-..\main.c(610): warning:  #177-D: variable "final_distance"  was declared but never referenced
+..\main.c(652): warning:  #61-D: integer operation result is out of range
+                  final_tx_time = (resp_rx_ts + (RESP_RX_TO_FINAL_TX_DLY_UUS * UUS_TO_DWT_TIME)) >> 8;
+..\main.c(599): warning:  #177-D: variable "final_distance"  was declared but never referenced
       float final_distance = 0;
-..\main.c(781): warning:  #177-D: variable "anthor_index"  was declared but never referenced
+..\main.c(770): warning:  #177-D: variable "anthor_index"  was declared but never referenced
       uint8 anthor_index = 0;
-..\main.c(834): warning:  #177-D: variable "rx_ant_delay"  was declared but never referenced
+..\main.c(823): warning:  #177-D: variable "rx_ant_delay"  was declared but never referenced
       int rx_ant_delay =32880;
-..\main.c(835): warning:  #177-D: variable "index"  was declared but never referenced
+..\main.c(824): warning:  #177-D: variable "index"  was declared but never referenced
       int index = 0 ;
-..\main.c(1369): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "uint8_t *"
+..\main.c(1358): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "uint8_t *"
           OLED_ShowString(0, 2,dist_str);
-..\main.c(1377): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "uint8_t *"
+..\main.c(1366): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "uint8_t *"
           OLED_ShowString(0, 4,dist_str);
-..\main.c(1385): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "uint8_t *"
+..\main.c(1374): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "uint8_t *"
           OLED_ShowString(0, 6,dist_str);
 ..\main.c(84): warning:  #177-D: variable "rx_poll_msg"  was declared but never referenced
   static uint8 rx_poll_msg[] =  {0x41, 0x88, 0, 0x0, 0xDE, 'W', 'A', 'V', 'E', 0x21, 0, 0};
@@ -74,11 +74,15 @@ compiling main.c...
   static double tof;
 ..\main.c(174): warning:  #177-D: variable "distance"  was declared but never referenced
   static double distance;
-..\main.c: 23 warnings, 0 errors
+..\main.c(1552): warning:  #177-D: function "final_msg_get_ts"  was declared but never referenced
+  static void final_msg_get_ts(const uint8 *ts_field, uint64 *ts)
+..\main.c(232): warning:  #550-D: variable "TXPOWER"  was set but never used
+  static u32 TXPOWER;
+..\main.c: 25 warnings, 0 errors
 linking...
-Program Size: Code=10520 RO-data=2200 RW-data=840 ZI-data=2160  
+Program Size: Code=10280 RO-data=2200 RW-data=816 ZI-data=2160  
 FromELF: creating hex file...
-".\STM3210E-EVAL\STM3210E-EVAL.axf" - 0 Error(s), 23 Warning(s).
+".\STM3210E-EVAL\STM3210E-EVAL.axf" - 0 Error(s), 25 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -101,7 +105,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.1.1
-Build Time Elapsed:  00:00:03
+Build Time Elapsed:  00:00:04
 </pre>
 </body>
 </html>
